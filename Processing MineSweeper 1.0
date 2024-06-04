@@ -1,0 +1,514 @@
+boolean firstClick = true;
+boolean mouseClicked = false;
+boolean mouseDragged = false;
+boolean mouseMoved = false;
+boolean mouseReleased = false;
+
+boolean outBounds(int x,int y){
+  return x<0||y<0||x>=gridW||y>=gridH;
+}
+
+int calcNear(int x,int y){
+  if(outBounds(x,y)){
+  return 0;
+  }
+  int i=0;
+  for(int oX=-1;oX<=1;oX++){
+    for(int oY=-1;oY<=1;oY++){
+      if(outBounds(oX+x,oY+y))continue;
+      i+=mines[oX+x][oY+y];
+    }
+  }
+  return i;
+}
+
+
+
+
+int[][]mines;
+boolean[][]flags;
+boolean[][]revealed;
+
+int gridW=8;
+int gridH=8;
+int cellSize=50;
+int numMines=10;
+
+int stage = 0;
+//Rectangle 0 List
+int[] Rect0 = new int[7];
+//Rectangle 1 List
+int[] Rect1 = new int[7];
+//Rectangle 2 List
+int[] Rect2 = new int[7];
+//Rectangle 3 List
+int[] Rect3 = new int[7];
+//Rectangle 4 List
+int[] Rect4 = new int[7];
+//Rectangle 5 List
+int[] Rect5 = new int[7];
+//Rectangle 6 List
+int[] Rect6 = new int[7];
+
+
+
+int DoubleClickStage4Button = 0;
+
+
+
+
+
+void settings() {
+  size(800,800);
+}
+
+
+void setup() {
+  //Rectangle 0 X, Y, Width, Height, R, G, B
+  Rect0[0] = 20;
+  Rect0[1] = 20;
+  Rect0[2] = 40;
+  Rect0[3] = 40;
+  
+  //Rectangle 1 X, Y, Width, Height, R, G, B
+  Rect1[0] = 175;
+  Rect1[1] = 400;
+  Rect1[2] = 450;
+  Rect1[3] = 60;
+
+  //Rectangle 2 X, Y, Width, Height, R, G, B
+  Rect2[0] = 175;
+  Rect2[1] = 500;
+  Rect2[2] = 450;
+  Rect2[3] = 60;
+
+  //Rectangle 3 X, Y, Width, Height, R, G, B
+  Rect3[0] = 175;
+  Rect3[1] = 600;
+  Rect3[2] = 450;
+  Rect3[3] = 60;
+
+ //Rectangle 4 X, Y, Width, Height, R, G, B
+  Rect4[0] = 175;
+  Rect4[1] = 400;
+  Rect4[2] = 450;
+  Rect4[3] = 60;
+  
+   //Rectangle 5 X, Y, Width, Height, R, G, B
+  Rect5[0] = 175;
+  Rect5[1] = 500;
+  Rect5[2] = 450;
+  Rect5[3] = 60;
+  
+   //Rectangle 6 X, Y, Width, Height, R, G, B
+  Rect6[0] = 175;
+  Rect6[1] = 600;
+  Rect6[2] = 450;
+  Rect6[3] = 60;
+ 
+  Rect0[4] = 0;
+  Rect0[5] = 0;
+  Rect0[6] = 0;
+  
+  Rect1[4] = 0;
+  Rect1[5] = 0;
+  Rect1[6] = 0;
+
+  Rect2[4] = 0;
+  Rect2[5] = 0;
+  Rect2[6] = 0;
+
+  Rect3[4] = 0;
+  Rect3[5] = 0;
+  Rect3[6] = 0;
+  
+  Rect4[4] = 0;
+  Rect4[5] = 0;
+  Rect4[6] = 0;
+  
+  Rect5[4] = 0;
+  Rect5[5] = 0;
+  Rect5[6] = 0;
+  
+  Rect6[4] = 0;
+  Rect6[5] = 0;
+  Rect6[6] = 0;
+  
+ 
+  mines=new int[gridW][gridH];
+  flags=new boolean[gridW][gridH];
+  revealed=new boolean[gridW][gridH];
+    
+  for(int x=0;x<gridW;x++){
+    for(int y=0;y<gridH;y++){
+      mines[x][y]=0;
+      flags[x][y]=false;
+      revealed[x][y]=false;
+    }
+  }  
+
+
+  background(0, 110, 255);
+}
+
+void placeMines(){
+  int i=0;
+  while(i<numMines){
+    int x=int(random(gridW));
+    int y=int(random(gridH));
+    if(mines[x][y]==1)continue;
+    mines[x][y]=1;
+    i++;
+  }
+}
+void clearMines(){
+  for(int x=0;x<gridW;x++){
+    for(int y=0;y<gridH;y++){
+      mines[x][y]=0;
+    }
+  }
+}
+
+void mousePressed(){
+  mouseClicked = true;
+  if (stage ==4) {
+    int x=int(mouseX/cellSize);
+    int y=int(mouseY/cellSize);
+
+    if(mouseButton==RIGHT){
+    flags[x][y]=!flags[x][y];
+    return;
+    }
+    else{
+      if(firstClick){
+         firstClick=false;
+         do{
+           clearMines();
+           placeMines();
+         }
+       while(mines[x][y]!=0);
+       }
+      
+     if(mines[x][y]!=0){
+       println("Dang!");
+       exit();
+     }
+   else{
+     reveal(x,y);
+   }
+ }
+ }
+}
+   
+     
+
+
+void mouseReleased(){
+  mouseClicked = false;
+  mouseDragged = false;
+}
+
+
+void mouseDragged(){
+  mouseDragged = true;
+}
+
+void mouseMoved(){
+  mouseMoved = true;
+}
+
+void reveal(int x,int y){
+  if(outBounds(x,y))return;
+  if(revealed[x][y])return;
+  revealed[x][y]=true;
+  if(calcNear(x,y)>0)return;
+  
+  reveal(x-1,y-1);
+  reveal(x-1,y+1);
+  reveal(x+1,y-1);
+  reveal(x+1,y+1);
+  
+  reveal(x-1,y);
+  reveal(x+1,y);
+  reveal(x,y-1);
+  reveal(x,y+1);
+}
+
+void draw() {
+  if (stage == 0) {
+    DoubleClickStage4Button = 0;
+    fill(255, 255, 255);
+    rect(0, 0, 800, 800);
+    if (mouseX >= Rect1[0] && mouseX <= Rect1[0] + Rect1[2] && mouseY >= Rect1[1] && mouseY <= Rect1[1] + Rect1[3]) {
+      if (mouseClicked == true && mouseDragged == false) {
+        stage = 1;
+      }
+      Rect1[4] = 0;
+      Rect1[5] = 0;
+      Rect1[6] = 0;
+      fill(Rect1[4], Rect1[5], Rect1[6]);
+      rect(Rect1[0], Rect1[1], Rect1[2], Rect1[3]);
+    } 
+    else {
+      Rect1[4] = 255;
+      Rect1[5] = 0;
+      Rect1[6] = 0;
+
+      fill(Rect1[4], Rect1[5], Rect1[6]);
+      rect(Rect1[0], Rect1[1], Rect1[2], Rect1[3]);
+    }
+    if (mouseX >= Rect2[0] && mouseX <= Rect2[0] + Rect2[2] && mouseY >= Rect2[1] && mouseY <= Rect2[1] + Rect2[3]) {
+      if (mouseClicked == true && mouseDragged == false) {
+        stage = 2;
+      }
+      Rect2[4] = 0;
+      Rect2[5] = 0;
+      Rect2[6] = 0;
+      fill(Rect2[4], Rect2[5], Rect2[6]);
+      rect(Rect2[0], Rect2[1], Rect2[2], Rect2[3]);
+    } 
+    else {
+      Rect2[4] = 255;
+      Rect2[5] = 0;
+      Rect2[6] = 0;
+
+      fill(Rect2[4], Rect2[5], Rect2[6]);
+      rect(Rect2[0], Rect2[1], Rect2[2], Rect2[3]);
+    }
+    if (mouseX >= Rect3[0] && mouseX <= Rect3[0] + Rect3[2] && mouseY >= Rect3[1] && mouseY <= Rect3[1] + Rect3[3]) {
+      if (mouseClicked == true && mouseDragged == false) {
+        stage = 3;
+      }
+   
+      Rect3[4] = 0;
+      Rect3[5] = 0;
+      Rect3[6] = 0;
+      fill(Rect3[4], Rect3[5], Rect3[6]);
+      rect(Rect3[0], Rect3[1], Rect3[2], Rect3[3]);
+    } 
+    else {
+      Rect3[4] = 255;
+      Rect3[5] = 0;
+      Rect3[6] = 0;
+
+      fill(Rect3[4], Rect3[5], Rect3[6]);
+      rect(Rect3[0], Rect3[1], Rect3[2], Rect3[3]);
+    }
+  }
+  if (stage == 1){
+    noStroke();
+    fill(100, 100, 100);
+    rect(0, 0, 800, 800);
+    stroke(1);
+    fill(150, 150, 150);
+    rect(0, 0, 800, 40);
+    noStroke();
+    fill(200, 200,200);
+    rect (10, 10, 780, 20);
+    stroke(1);
+    if (mouseX >= Rect0[0] && mouseX <= Rect0[0] + Rect0[2] && mouseY >= Rect0[1] && mouseY <= Rect0[1] + Rect0[3]) {
+      if (mouseClicked == true && mouseDragged == false) {
+        stage = 0;
+      }
+      
+      Rect0[4] = 0;
+      Rect0[5] = 0;
+      Rect0[6] = 0;
+      fill(Rect0[4], Rect0[5], Rect0[6]);
+      rect(Rect0[0], Rect0[1], Rect0[2], Rect0[3]);
+    }
+    else {
+      Rect0[4] = 255;
+      Rect0[5] = 0;
+      Rect0[6] = 0;
+
+      fill(Rect0[4], Rect0[5], Rect0[6]);
+      rect(Rect0[0], Rect0[1], Rect0[2], Rect0[3]);
+    }
+    if (mouseX >= Rect4[0] && mouseX <= Rect4[0] + Rect4[2] && mouseY >= Rect4[1] && mouseY <= Rect4[1] + Rect4[3]) {
+      if (mouseClicked == true && mouseDragged == false) {
+        //if (DoubleClickStage4Button == 0 && mouseReleased == true) {
+          //DoubleClickStage4Button++;
+        //}
+        //if (DoubleClickStage4Button == 1) {
+          //DoubleClickStage4Button = 0;
+          stage = 4;
+        //}
+      }
+      Rect4[4] = 0;
+      Rect4[5] = 0;
+      Rect4[6] = 0;
+      fill(Rect4[4], Rect4[5], Rect4[6]);  
+      rect(Rect4[0], Rect4[1], Rect4[2], Rect4[3]);
+    }
+    else {
+      Rect4[4] = 255;
+      Rect4[5] = 0;
+      Rect4[6] = 0;
+
+      fill(Rect4[4], Rect4[5], Rect4[6]);
+      rect(Rect4[0], Rect4[1], Rect4[2], Rect4[3]);
+    }
+    if (mouseX >= Rect5[0] && mouseX <= Rect5[0] + Rect5[2] && mouseY >= Rect5[1] && mouseY <= Rect5[1] + Rect5[3]) {
+      if (mouseClicked == true && mouseDragged == false) {
+        
+      }
+      Rect5[4] = 0;
+      Rect5[5] = 0;
+      Rect5[6] = 0;
+      fill(Rect5[4], Rect5[5], Rect5[6]);
+      rect(Rect5[0], Rect5[1], Rect5[2], Rect5[3]);
+    } 
+    else {
+      Rect5[4] = 255;
+      Rect5[5] = 0;
+      Rect5[6] = 0;
+
+      fill(Rect5[4], Rect5[5], Rect5[6]);
+      rect(Rect5[0], Rect5[1], Rect5[2], Rect5[3]);
+    }
+    if (mouseX >= Rect6[0] && mouseX <= Rect6[0] + Rect6[2] && mouseY >= Rect6[1] && mouseY <= Rect6[1] + Rect6[3]) {
+      if (mouseClicked == true && mouseDragged == false) {
+  
+      }
+      
+      Rect6[4] = 0;
+      Rect6[5] = 0;
+      Rect6[6] = 0;
+      fill(Rect6[4], Rect6[5], Rect6[6]);
+      rect(Rect6[0], Rect6[1], Rect6[2], Rect6[3]);
+    }
+    else {
+      Rect6[4] = 255;
+      Rect6[5] = 0;
+      Rect6[6] = 0;
+
+      fill(Rect6[4], Rect6[5], Rect6[6]);
+      rect(Rect6[0], Rect6[1], Rect6[2], Rect6[3]);
+    }
+  }
+    
+  if (stage == 2){
+    noStroke();
+    fill(100, 100, 100);
+    rect(0, 0, 800, 800);
+    stroke(1);
+    fill(150, 150, 150);
+    rect(0, 0, 800, 40);
+    noStroke();
+    fill(200, 200,200);
+    rect (10, 10, 780, 20);
+    stroke(1);
+    if (mouseX >= Rect0[0] && mouseX <= Rect0[0] + Rect0[2] && mouseY >= Rect0[1] && mouseY <= Rect0[1] + Rect0[3]) {
+      if (mouseClicked == true && mouseDragged == false) {
+        stage = 0;
+      }
+      
+      Rect0[4] = 0;
+      Rect0[5] = 0;
+      Rect0[6] = 0;
+      fill(Rect0[4], Rect0[5], Rect0[6]);
+      rect(Rect0[0], Rect0[1], Rect0[2], Rect0[3]);
+    }
+    else {
+      Rect0[4] = 255;
+      Rect0[5] = 0;
+      Rect0[6] = 0;
+
+      fill(Rect0[4], Rect0[5], Rect0[6]);
+      rect(Rect0[0], Rect0[1], Rect0[2], Rect0[3]);
+    }
+  }
+  if (stage == 3){
+    noStroke();
+    fill(100, 100, 100);
+    rect(0, 0, 800, 800);
+    stroke(1);
+    fill(150, 150, 150);
+    rect(0, 0, 800, 40);
+    noStroke();
+    fill(200, 200,200);
+    rect (10, 10, 780, 20);
+    stroke(1);
+    if (mouseX >= Rect0[0] && mouseX <= Rect0[0] + Rect0[2] && mouseY >= Rect0[1] && mouseY <= Rect0[1] + Rect0[3]) {
+      if (mouseClicked == true && mouseDragged == false) {
+        stage = 0;
+      }
+      
+      Rect0[4] = 0;
+      Rect0[5] = 0;
+      Rect0[6] = 0;
+      fill(Rect0[4], Rect0[5], Rect0[6]);
+      rect(Rect0[0], Rect0[1], Rect0[2], Rect0[3]);
+    }
+    else {
+      Rect0[4] = 255;
+      Rect0[5] = 0;
+      Rect0[6] = 0;
+
+      fill(Rect0[4], Rect0[5], Rect0[6]);
+      rect(Rect0[0], Rect0[1], Rect0[2], Rect0[3]);
+    }
+  }
+  if(stage == 4){
+    background(0);
+    for(int x=0;x<gridW;x++){
+      for(int y=0;y<gridH;y++){
+        color col1=color(2*255/5);
+        color col2=color(3*255/5);
+        color txtColor=color(0);
+       
+        int near=calcNear(x,y);
+      
+        if(flags[x][y]){
+          col1=color(255,0,0);
+          col2=color(4*255/5,255/5,255/5);
+        }
+        else if(revealed[x][y]){
+          col1=color(255/2);
+          col2=color(255/2);
+        }
+      
+        if(near==1)txtColor=color(255*1/4,255*1/4,255*3/4);
+        if(near==2)txtColor=color(255*1/4,255*3/4,155*1/4);
+        if(near==3)txtColor=color(255,0,0);
+        if(near==4)txtColor=color(0,0,255);
+        if(near==5)txtColor=color(255,0,0);
+      
+        boolean alternate=(x+y)%2==0;
+        if(alternate){
+          fill(col2);
+          stroke(col2);
+        }
+        else{
+          fill(col1);
+          stroke(col1);
+        }
+      
+        rect(x*cellSize,y*cellSize,cellSize,cellSize);
+      
+        if(near>0&&revealed[x][y]){
+          fill(txtColor);
+          noStroke();
+          textAlign(LEFT,TOP);
+          textSize(cellSize);
+          text(""+near,x*cellSize,y*cellSize);
+        } 
+      }
+    }
+  }
+}
+
+
+
+  
+  
+  
+  
+
+
+
+
+
+
+
